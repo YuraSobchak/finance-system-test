@@ -46,12 +46,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         $mailNameLength = strlen($mailParts[0]);
         $stars = null;
+        // string of stars with mail name length without first and last letters
         for ($i = 1; $i <= $mailNameLength - 2; $i++) {
             $stars .= '*';
         }
 
+        // mail name with only first and last letters
         $mailName = substr_replace($mailParts[0], $stars, 1, $mailNameLength-2);
 
+        // return secure mail
         return $mailName . '@' . $mailParts[1];
     }
 

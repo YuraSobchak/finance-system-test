@@ -36,6 +36,7 @@ final class SecurityController extends Controller
     {
         $user = new User();
         $this->handleForm(UserType::class, $user);
+        // hash password and add to user
         $user = $this->userService->updateUserPassword($user, $user->getPassword());
         $this->em->persist($user);
         $this->em->flush();
