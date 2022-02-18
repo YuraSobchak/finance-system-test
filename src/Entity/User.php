@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -29,6 +31,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(type: 'float', nullable: true)]
     private $amount;
+
+    #[ORM\OneToMany(mappedBy: 'receiver', targetEntity: Transaction::class, orphanRemoval: true)]
+    private $payments;
+
+    #[ORM\OneToMany(mappedBy: 'sender', targetEntity: Transaction::class, orphanRemoval: true)]
+    private $transactions;
+
+    public function __construct()
+    {
+        $this->payments = new ArrayCollection();
+        $this->transactions = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -138,6 +152,66 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setAmount(?float $amount): self
     {
         $this->amount = $amount;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Transaction>
+     */
+    public function getPayments(): Collection
+    {
+        return $this->payments;
+    }
+
+    public function addPayment(Transaction $transaction): self
+    {
+        if (!$this->payments->contains($transaction)) {
+            $this->payments[] = $transaction;
+            $transaction->setReceiver($this);
+        }
+
+        return $this;
+    }
+
+    public function removePayment(Transaction $transaction): self
+    {
+        if ($this->payments->removeElement($transaction)) {
+            // set the owning side to null (unless already changed)
+            if ($transaction->getReceiver() === $this) {
+                $transaction->setReceiver(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Transaction>
+     */
+    public function getTransactions(): Collection
+    {
+        return $this->transactions;
+    }
+
+    public function addTransaction(Transaction $transaction): self
+    {
+        if (!$this->transactions->contains($transaction)) {
+            $this->transactions[] = $transaction;
+            $transaction->setSender($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTransaction(Transaction $transaction): self
+    {
+        if ($this->transactions->removeElement($transaction)) {
+            // set the owning side to null (unless already changed)
+            if ($transaction->getSender() === $this) {
+                $transaction->setSender(null);
+            }
+        }
 
         return $this;
     }

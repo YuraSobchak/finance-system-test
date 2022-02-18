@@ -23,4 +23,16 @@ final class UserDataTransformer
             'amount' => $user->getAmount()
         ];
     }
+
+    /**
+     * @param User $user
+     * @return array
+     */
+    public static function userTransactionToArray(User $user): array
+    {
+        return [
+            'username' => $user->getUsername(),
+            'email' => $user->getSecureEmail(),
+        ];
+    }
 }
