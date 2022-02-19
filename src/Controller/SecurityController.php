@@ -3,16 +3,16 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Entity\User;
-use App\Form\UserType;
+use App\DTO\UserRequest;
+use App\Factory\UserFactory;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 
-final class SecurityController extends Controller
+final class SecurityController extends AbstractController
 {
     private EntityManagerInterface $em;
     private UserService $userService;
@@ -28,16 +28,19 @@ final class SecurityController extends Controller
 
     /**
      * @Route("/api/register", methods={"POST"}, name="api.register")
+     * @param UserRequest $userRequest
      * @param JWTTokenManagerInterface $JWTManager
      * @return JsonResponse
-     * @throws Exception
      */
-    public function register(JWTTokenManagerInterface $JWTManager): JsonResponse
+    public function register(UserRequest $userRequest, JWTTokenManagerInterface $JWTManager): JsonResponse
     {
-        $user = new User();
-        $this->handleForm(UserType::class, $user);
+        // create User
+        $user = (new UserFactory())->create(
+            $userRequest->email(),
+            $userRequest->username()
+        );
         // hash password and add to user
-        $user = $this->userService->updateUserPassword($user, $user->getPassword());
+        $user = $this->userService->updateUserPassword($user, $userRequest->password());
         $this->em->persist($user);
         $this->em->flush();
 
